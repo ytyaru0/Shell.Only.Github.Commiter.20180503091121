@@ -6,6 +6,7 @@ IsSameRepoName () {
     local url=`ReadIni "$f" 'remote "origin"' url`
     # 以下HTTPS形式を想定
     # https://user:pass@github.com/user/repo.git
+    username=`echo ${url} | awk -F "/" '{ print $(NF - 1) }'`
     local gitconfig_reponame=`echo ${url} | awk -F "/" '{ print $NF }'`
     local gitconfig_reponame=`echo ${gitconfig_reponame%.git}`
     local cd_name=$(basename "${repo_path}")
@@ -21,11 +22,13 @@ ExistReadMe () {
     exit 1
 }
 SelectUser () {
-    #local select=`python3 AccountsCui.py get users`
     #. CsvReader.sh
-    local select=`ReadUsers`
-    echo "ユーザを選択してください。"
-    select i in $select; do [ -n "$i" ] && { username=$i; break; }; done
+    # usernameが未定義ならユーザ選択させる
+    if [ -z "$username" ] && [ "${username:-A}" = "${username-A}" ]; then
+        local select=`ReadUsers`
+        echo "ユーザを選択してください。"
+        select i in $select; do [ -n "$i" ] && { username=$i; break; }; done
+    fi
 }
 IsRegistedUser () {
     #. CsvReader.sh
@@ -40,7 +43,6 @@ GetPassMail () {
     [ -z "$password" ] && { echo "パスワードが見つかりませんでした。DBを確認してください。"; exit 1; }
     [ -z "$mailaddr" ] && { echo "メールアドレスが見つかりませんでした。DBを確認してください。"; exit 1; }
 }
-# $1 password or token
 OverwriteConfig () {
     local before="	url = https://github.com/"
     if [ "$token" == "" ]; then
@@ -111,6 +113,8 @@ repo_path=`pwd`
 IsSameRepoName 
 ExistReadMe
 [ 0 -eq $# ] && SelectUser
+#[ 0 -eq $# -a ! -f "${repo_path}/.git/config" ] && SelectUser
+#[ 0 -eq $# ] && [ ! -f "${repo_path}/.git/config" ] && SelectUser
 [ 0 -lt $# ] && IsRegistedUser $1
 
 # パスワード取得と設定

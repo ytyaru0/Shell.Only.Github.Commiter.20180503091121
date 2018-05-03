@@ -19,4 +19,4 @@ ReadIni() {
 #        [ "$3" = "$key" ] && { echo $value; break; return; }
     done
 }
-ReadIni /tmp/work/Shell.Only.Github.Commiter.20180501085541/.git/config 'remote "origin"' url
+#ReadIni /tmp/work/Shell.Only.Github.Commiter.20180501085541/.git/config 'remote "origin"' url
